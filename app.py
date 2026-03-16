@@ -12,7 +12,7 @@ socketio = SocketIO(app, cors_allowed_origins='*')  # 支持跨设备连接
 MAX_FILES = 10
 shared_text = ''
 
-# 创建上传目录（如果不存在）
+# 创建上传目录（如果不存在）、
 for folder in [app.config['UPLOAD_FOLDER'], TEXT_SAVE_FOLDER]:
     if not os.path.exists(folder):
         os.makedirs(folder)

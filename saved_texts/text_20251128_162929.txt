@@ -1,0 +1,19 @@
+{
+
+    "module": "tracking",
+
+    "func": "setPingConfig",
+
+    "args": {
+
+        "hosts":["www.kuaishou.com","www.baidu.com"],
+
+        "custom_params":{
+
+            "key1":"value1"
+
+        }
+
+    }
+
+}

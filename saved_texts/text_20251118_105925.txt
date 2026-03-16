@@ -1,0 +1,8 @@
+{
+  "args": {
+    "localFilePath": "/data/storage/el2/base/haps/entry/cache/testSave.png",
+    "taskId": "25111800"
+  },
+  "func": "upload",
+  "module": "commonComp"
+}

@@ -1,0 +1,7 @@
+{
+    "module": "commonComp",
+    "func": "checkSensitiveWords",
+    "args": {
+        "inputs": "[\"共产党\"]"
+    }
+}

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>文本同步工具</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f7fa;
+    color: #2f7cff;<!-- 选择的文件字体颜色 -->
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    background: linear-gradient(to right, #f79c01, #f78a01, #f55701);
+  }
+  header .logo {
+    height: 36px;
+    margin-right: 12px;
+  }
+  header .gradient-text {
+    font-size: 1.6rem;
+    font-weight: 600;
+    background-image: linear-gradient(270deg, #ff4e50, #f9d423, #24c6dc, #5433ff, #ff4e50);
+    background-size: 800% 800%;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: gradientText 8s ease infinite;
+  }
+
+  @keyframes gradientText {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+ main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  max-width: 840px;
+  margin: 0 auto;
+  width: 100%;
+  background: white;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+#sync-text {
+  width: 70%;
+  max-width: 700px;
+  height: 160px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: Consolas, monospace;
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.1);
+  transition: border-color 0.3s ease;
+  margin: 0 auto;
+}
+  #sync-text:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 6px #4a90e2aa;
+  }
+
+  .button-row {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center; /* 居中按钮组 */
+}
+  button {
+    background: #4a90e2;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 3px 6px rgb(74 144 226 / 0.4);
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #357abd;
+  }
+  button:disabled {
+    background: #a0bce8;
+    cursor: not-allowed;
+  }
+
+  h3 {
+    margin-top: 28px;
+    font-weight: 600;
+    color: #222;
+  }
+  #saved-texts-list > div {
+    background: white;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+  }
+  #saved-texts-list pre {
+    background: #f4f6f8;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: Consolas, monospace;
+    white-space: pre-wrap;
+    max-height: 130px;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+
+  #saved-texts-list button,
+  #saved-texts-list a {
+    margin-right: 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  #saved-texts-list button {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 12px;
+    transition: background-color 0.3s ease;
+  }
+  #saved-texts-list button:hover {
+    background: #357abd;
+  }
+  #saved-texts-list a {
+    color: #4a90e2;
+    text-decoration: none;
+  }
+  #saved-texts-list a:hover {
+    text-decoration: underline;
+  }
+
+  #bg-upload-form,
+#upload-form {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+  #bg-upload-form input[type="file"],
+  #upload-form input[type="file"] {
+    cursor: pointer;
+    color: #f7a337;
+  }
+  #bg-upload-form button,
+  #upload-form button {
+    padding: 8px 16px;
+  }
+
+  #preview {
+    margin-top: 12px;
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+    max-height: 250px;
+    overflow: auto;
+  }
+  #preview img,
+  #preview video {
+    max-width: 100%;
+    border-radius: 6px;
+  }
+  #preview pre {
+    white-space: pre-wrap;
+    font-family: Consolas, monospace;
+  }
+
+  #progress {
+    margin-top: 10px;
+    background: #ddd;
+    border-radius: 6px;
+    height: 8px;
+    width: 100%;
+    display: none;
+  }
+  #progress-bar {
+    height: 100%;
+    width: 0;
+    background: #4a90e2;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+  }
+
+  #toast {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.5);  /* 半透明黑色背景 */
+  color: #ffffff;               /* toast 纯白色字体 */
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1000;
+}
+
+@media (max-width: 480px) {
+  .button-row {
+    justify-content: center;
+  }
+  button {
+    flex-grow: 1;
+    max-width: 100%;
+  }
+  #bg-upload-form,
+  #upload-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #bg-upload-form button,
+  #upload-form button {
+    max-width: 100%;
+  }
+  main {
+    margin: 0 12px;
+    padding: 16px;
+  }
+}
+
+  .file-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+.file-list li {
+  background: white;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.file-list a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+.file-list button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.file-list button:hover {
+  background: #c0392b;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+  <span class="gradient-text">文本同步工具</span>
+</header>
+
+<main>
+  <textarea id="sync-text" placeholder="请输入文本内容..."></textarea>
+
+  <div class="button-row">
+    <button id="copy-button">复制</button>
+    <button id="save-button">保存</button>
+    <button id="refresh-button">刷新</button>
+    <button id="broadcast-button">确认同步</button>
+  </div>
+<form id="upload-form" enctype="multipart/form-data">
+  <input type="file" name="file" id="file" multiple />
+  <button type="submit">📤 上传文件</button>
+</form>
+
+  <!--文件上传列表展示,支持下载和删除功能-->
+  <h3>📂 最近上传的文件（最多10个）</h3>
+<ul class="file-list">
+  {% for file in files %}
+  <li>
+    <div>
+      <a href="{{ url_for('uploaded_file', filename=file.name) }}" download>{{ file.name }}</a>
+      <span style="margin-left: 12px; font-size: 0.9rem; color: gray;">
+        {{ file.size }} - {{ file.time }}
+      </span>
+    </div>
+    <form method="POST" action="{{ url_for('delete_file', filename=file.name) }}" onsubmit="return confirm('确认删除 {{ file.name }}？')">
+      <button type="submit">🗑️ 删除</button>
+    </form>
+  </li>
+  {% else %}
+  <li>暂无上传记录</li>
+  {% endfor %}
+</ul>
+  <h3>已保存文本</h3>
+  <div id="saved-texts-list"></div>
+
+  <!--背景图上传工具,暂时不可用
+  <form id="bg-upload-form" enctype="multipart/form-data">
+    <input type="file" name="bg" accept="image/*" required />
+   <button type="submit">上传背景图</button>-->
+  </form>
+
+
+
+  <div id="preview"></div>
+  <div id="progress">
+    <div id="progress-bar"></div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script>
+window.onload = () => {
+    const socket = io();
+
+    const textarea = document.getElementById('sync-text');
+    const toast = document.getElementById('toast');
+    const copyBtn = document.getElementById('copy-button');
+    const saveBtn = document.getElementById('save-button');
+    const refreshBtn = document.getElementById('refresh-button');
+    const broadcastBtn = document.getElementById('broadcast-button');
+    const savedTextsList = document.getElementById('saved-texts-list');
+    const bgUploadForm = document.getElementById('bg-upload-form');
+    const uploadForm = document.getElementById('upload-form');
+    const preview = document.getElementById('preview');
+    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progress-bar');
+    const fileInput = document.getElementById('file');
+
+    function showToast(msg) {
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.opacity = 1;
+        setTimeout(() => {
+            toast.style.opacity = 0;
+        }, 2000);
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(() => showToast('✅ 复制成功!'))
+                .catch(() => showToast('❌ 复制失败'));
+        } else {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            tempInput.style.position = 'absolute';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            const success = document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast(success ? '✅ 复制成功!' : '❌ 复制失败');
+        }
+    }
+
+    let selfUpdate = false;
+    if (textarea) {
+        textarea.addEventListener('input', () => {
+            if (!selfUpdate) socket.emit('text_update', textarea.value);
+            selfUpdate = false;
+        });
+    }
+
+    socket.on('update_textbox', (data) => {
+        if (textarea) {
+            selfUpdate = true;
+            textarea.value = data;
+        }
+    });
+
+    if (copyBtn && textarea) {
+        copyBtn.onclick = () => {
+            copyText(textarea.value);
+        };
+    }
+
+    if (saveBtn && textarea) {
+        saveBtn.onclick = () => {
+            saveBtn.disabled = true;
+            fetch('/save_text', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text: textarea.value })
+            }).then(res => res.json()).then(res => {
+                if (res.status === 'success') {
+                    showToast('🎉 保存成功！');
+                    loadSavedTexts();
+                } else {
+                    showToast('❌ 保存失败');
+                }
+            }).finally(() => {
+                saveBtn.disabled = false;
+            });
+        };
+    }
+
+    if (refreshBtn && textarea) {
+        refreshBtn.onclick = () => {
+            fetch('/get_current_text').then(res => res.json()).then(res => {
+                if (res.status === 'success') {
+                    textarea.value = res.text;
+                    showToast('🔄 已刷新文本');
+                } else {
+                    showToast('❌ 刷新失败');
+                }
+            });
+        };
+    }
+
+    if (broadcastBtn && textarea) {
+        broadcastBtn.onclick = () => {
+            socket.emit('text_update', textarea.value);
+            showToast('📤 已同步给其他设备');
+        };
+    }
+
+    function loadSavedTexts() {
+        if (!savedTextsList) return;
+        fetch('/saved_texts').then(res => res.json()).then(list => {
+            savedTextsList.innerHTML = '';
+            list.forEach(item => {
+                const div = document.createElement('div');
+                div.style.border = '1px solid #ccc';
+                div.style.padding = '10px';
+                div.style.marginBottom = '10px';
+                div.style.borderRadius = '6px';
+
+                const header = document.createElement('div');
+                header.style.marginBottom = '6px';
+
+                const title = document.createElement('strong');
+                title.innerText = `${item.name}（${item.time}）`;
+
+                const br = document.createElement('br');
+
+                const download = document.createElement('a');
+                download.href = item.url;
+                download.setAttribute('download', '');
+                download.innerText = '📥 下载';
+                download.style.marginRight = '8px';
+
+                const copyBtn = document.createElement('button');
+                copyBtn.innerText = '📋 复制';
+                copyBtn.style.marginRight = '8px';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerText = '🗑️ 删除';
+
+                deleteBtn.onclick = () => deleteSavedText(item.name);
+
+                const pre = document.createElement('pre');
+                pre.textContent = item.content;
+                pre.style.whiteSpace = 'pre-wrap';
+                pre.style.background = '#000000'; <!--页面底色米白色-->
+                pre.style.padding = '8px';
+                pre.style.borderRadius = '4px';
+                pre.style.maxHeight = '150px';
+                pre.style.overflow = 'auto';
+
+                copyBtn.addEventListener('click', () => {
+                    copyText(pre.textContent);
+                });
+
+                header.appendChild(title);
+                header.appendChild(br);
+                header.appendChild(download);
+                header.appendChild(copyBtn);
+                header.appendChild(deleteBtn);
+
+                div.appendChild(header);
+                div.appendChild(pre);
+
+                savedTextsList.appendChild(div);
+            });
+        }).catch(() => {
+            showToast('❌ 获取已保存文本失败');
+        });
+    }
+
+    function deleteSavedText(name) {
+        fetch(`/delete_saved_text/${encodeURIComponent(name)}`, { method: 'POST' })
+            .then(res => res.json()).then(res => {
+                if (res.status === 'success') {
+                    showToast('✅ 删除成功！');
+                    loadSavedTexts();
+                } else {
+                    showToast('❌ 删除失败');
+                }
+            }).catch(() => {
+                showToast('❌ 删除失败');
+            });
+    }
+
+    // 文件上传逻辑
+    uploadForm.onsubmit = function(e) {
+    e.preventDefault();
+    const files = fileInput.files;
+    if (!files.length) return showToast('❌ 没选文件');
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('file', files[i]);
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload_file', true);
+
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            progress.style.display = 'block';
+            progressBar.style.width = percent + '%';
+        }
+    };
+
+    xhr.onload = function() {
+        progress.style.display = 'none';
+        progressBar.style.width = '0';
+        if (xhr.status === 200) {
+            try {
+                const res = JSON.parse(xhr.responseText);
+                if (res.status === 'success') {
+                    showToast(res.message);
+                    loadFilesList(); // 上传成功后刷新文件列表
+                } else {
+                    showToast(res.message);
+                }
+            } catch {
+                showToast('❌ 上传响应解析失败');
+            }
+        } else {
+            showToast('❌ 上传失败');
+        }
+    };
+
+    xhr.onerror = function() {
+        progress.style.display = 'none';
+        progressBar.style.width = '0';
+        showToast('❌ 上传出错');
+    };
+
+    xhr.send(formData);
+};
+
+    // 文件预览
+    window.previewFile = function() {
+        const file = fileInput.files[0];
+        if (!file) {
+            preview.innerHTML = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        const type = file.type;
+        const name = file.name.toLowerCase();
+
+        if (type.startsWith('image/')) {
+            reader.onload = () => {
+                preview.innerHTML = `<img src="${reader.result}" alt="预览图">`;
+            };
+            reader.readAsDataURL(file);
+        } else if (type.startsWith('video/')) {
+            reader.onload = () => {
+                preview.innerHTML = `
+                    <video controls width="100%">
+                        <source src="${reader.result}" type="${type}">
+                    </video>`;
+            };
+            reader.readAsDataURL(file);
+        } else if (name.endsWith('.txt') || name.endsWith('.log')) {
+            reader.onload = () => {
+                preview.innerHTML = `<pre>${reader.result}</pre>`;
+            };
+            reader.readAsText(file);
+        } else {
+            preview.innerHTML = `<p>文件：${file.name}</p>`;
+        }
+    };
+
+    if (bgUploadForm) {
+        bgUploadForm.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload_bg', { method: 'POST', body: formData })
+                .then(() => {
+                    showToast('🌄 背景图已设置，正在刷新...');
+                    setTimeout(() => location.reload(), 1500);
+                })
+                .catch(() => {
+                    showToast('❌ 上传背景图失败');
+                });
+        };
+    }
+
+    loadSavedTexts();
+};
+</script>
+
+</body>
+</html>
